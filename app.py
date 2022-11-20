@@ -7,7 +7,6 @@ import torchaudio
 import onnx
 import onnxruntime
 import numpy as np
-from scipy.io import wavfile
 import scipy.signal as sps
 import os
 from pythainlp.util import normalize
