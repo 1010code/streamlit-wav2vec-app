@@ -38,7 +38,10 @@ def asr(path):
     Fork TF to numpy
     """
 #     sampling_rate, data = wavfile.read(path)
-    data, sampling_rate = torchaudio.load(path)
+    audio_format = 'wav'
+    if path.name.endswith('mp3'):
+        audio_format = 'mp3'
+    data, sampling_rate = torchaudio.load(path, format=audio_format)
     samples = round(len(data) * float(new_rate) / sampling_rate)
     new_data = sps.resample(data, samples)
     speech = np.array(new_data, dtype=np.float32)
