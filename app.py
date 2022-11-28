@@ -73,10 +73,11 @@ def load_model():
     res[68]="[UNK]"
     return d, res, ort_session
 d, res, ort_session = load_model()
-st.text("模型載入成功！")
+st.text("wav2vec 模型載入成功！")
 #############
 
-st.markdown("""wav2vec""")
+st.markdown("""⚠️  請上傳單聲道音檔，允許`.mp3`和`.wav`格式。建議取樣頻率`16kHz`以上尤佳。""")
+st.markdown("""🎵 提供測試音檔[下載](https://drive.google.com/drive/folders/1J6x8dqymeYOUt4lm8Irnb0J1CcHrBpHP?usp=share_link)。""")
 
 
 # 上傳檔案
