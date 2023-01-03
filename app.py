@@ -10,8 +10,8 @@ import numpy as np
 import scipy.signal as sps
 import os
 from pythainlp.util import normalize
-
-
+from pydub import AudioSegment
+import librosa
 def _normalize(x):  #
     """You must call this before padding.
     Code from https://github.com/vasudevgupta7/gsoc-wav2vec2/blob/main/src/wav2vec2/processor.py#L101
@@ -31,26 +31,40 @@ def remove_adjacent(item):  # code from https://stackoverflow.com/a/3460423
             a.append(item)
     return "".join(a)
 
+resamplers = {
+     48000: torchaudio.transforms.Resample(48000,16000),
+     44100: torchaudio.transforms.Resample(44100,16000),
+     32000: torchaudio.transforms.Resample(32000,16000),
+     22050: torchaudio.transforms.Resample(22050,16000),
+     16000: torchaudio.transforms.Resample(16000,16000),
+     }
+
+
 
 def asr(path):
     """
     Code from https://github.com/vasudevgupta7/gsoc-wav2vec2/blob/main/notebooks/wav2vec2_onnx.ipynb
     Fork TF to numpy
     """
-#     sampling_rate, data = wavfile.read(path)
     audio_format = 'wav'
     if path.name.endswith('mp3'):
         audio_format = 'mp3'
     data, sampling_rate = torchaudio.load(path, format=audio_format)
-    samples = round(len(data) * float(new_rate) / sampling_rate)
-    new_data = sps.resample(data, samples)
-    speech = np.array(new_data, dtype=np.float32)
+    data = resamplers[sampling_rate](data)
+    #sampleing_rate = 16000
+    #samples = round(len(data) * float(new_rate) / sampling_rate)
+    #new_data = sps.resample(data, samples)
+    speech = np.array(data, dtype=np.float32)
     speech = _normalize(speech)[None]
     padding = np.zeros((speech.shape[0], AUDIO_MAXLEN - speech.shape[1]))
     speech = np.concatenate([speech, padding], axis=-1).astype(np.float32)
     ort_inputs = {"modelInput": speech}
+    print(ort_inputs)
     ort_outs = ort_session.run(None, ort_inputs)
+    print(ort_outs)
     prediction = np.argmax(ort_outs, axis=-1)
+    print('prediction')
+    print(prediction)
     # Text post processing
     _t1 = "".join([res[i] for i in list(prediction[0][0])])
     return normalize("".join([remove_adjacent(j) for j in _t1.split("[PAD]")]))
@@ -76,7 +90,7 @@ d, res, ort_session = load_model()
 st.text("wav2vec 模型載入成功！")
 #############
 
-st.markdown("""⚠️  請上傳單聲道音檔，允許`.mp3`和`.wav`格式。建議取樣頻率`16kHz`以上尤佳。""")
+st.markdown("""⚠️  請上傳單聲道音檔，允許`.mp3`和`.wav`格式。建議取樣頻率`16kHz`尤佳。""")
 st.markdown("""🎵 提供測試音檔[下載](https://drive.google.com/drive/folders/1J6x8dqymeYOUt4lm8Irnb0J1CcHrBpHP?usp=share_link)。""")
 
 
